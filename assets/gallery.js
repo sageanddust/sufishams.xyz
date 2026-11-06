@@ -54,8 +54,6 @@
     "assets/photos/2024 S24 - 053.jpg",
     "assets/photos/2024 S24 - 054.jpg",
     "assets/photos/2024 S24 - 058.jpg",
-    "assets/photos/2024 S24 - 061.jpg",
-    "assets/photos/2024 S24 - 077.jpg",
     "assets/photos/2025 002 - Ist.2.jpg",
     "assets/photos/2025 003 - Ist.3.jpg",
     "assets/photos/2025 004 - Brs.1.jpg",
