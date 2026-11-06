@@ -1,12 +1,18 @@
-const photos = (window.PHOTO_FILES || []).filter((src) => !src.includes("/Signed Photos/")).map((src) => {
+const photoFiles = (window.PHOTO_FILES || []).filter((src) => !src.includes("/Signed Photos/"));
+const photos = photoFiles.map((src) => {
   const file = decodeURIComponent(src.split("/").pop() || src);
   const title = file.replace(/\.(jpe?g|png)$/i, "").replace(/\s+/g, " ");
   const year = (title.match(/\b20\d{2}\b/) || ["Archive"])[0];
-  return { title, year };
+  return { src, title, year };
 });
 
 const gallery = document.querySelector("#gallery");
+const heroPhoto = document.querySelector("#hero-photo");
 const count = document.querySelector("#photo-count");
+const lightbox = document.querySelector("#lightbox");
+const lightboxImage = document.querySelector("#lightbox-image");
+const lightboxCaption = document.querySelector("#lightbox-caption");
+const closeButton = document.querySelector(".close");
 const galleryCount = document.querySelector("#gallery-count");
 
 const series = [
@@ -16,10 +22,17 @@ const series = [
 ];
 
 function cardFor(photo) {
-  const entry = document.createElement("p");
-  entry.className = "photo-card";
-  entry.textContent = photo.title;
-  return entry;
+  const figure = document.createElement("figure");
+  figure.className = "photo-card";
+  figure.dataset.year = photo.year;
+  figure.dataset.src = photo.src;
+  figure.dataset.title = photo.title;
+  figure.innerHTML = `
+    <img loading="lazy" src="${photo.src}" alt="${photo.title}">
+    <figcaption>${photo.title}</figcaption>
+  `;
+  figure.addEventListener("click", () => openPhoto(photo));
+  return figure;
 }
 
 function renderGallery(filter = "all") {
@@ -36,16 +49,26 @@ function renderGallery(filter = "all") {
   filtered.forEach((photo) => gallery.appendChild(cardFor(photo)));
 }
 
+function openPhoto(photo) {
+  lightboxImage.src = photo.src;
+  lightboxImage.alt = photo.title;
+  lightboxCaption.textContent = photo.title;
+  lightbox.showModal();
+}
+
 function renderSeries() {
   const target = document.querySelector("#series-grid");
   target.innerHTML = "";
   series.forEach((item) => {
+    const photo = photos.find((entry) => entry.src.includes(item.match)) || photos[0];
     const article = document.createElement("article");
     article.className = "series-card";
     article.innerHTML = `
+      <img src="${photo.src}" alt="${item.label}">
       <h3>${item.label}</h3>
-      <p>${photos.filter((entry) => entry.title.includes(item.match)).length} photographs</p>
+      <p>${photos.filter((entry) => entry.src.includes(item.match)).length || 1} photographs</p>
     `;
+    article.addEventListener("click", () => openPhoto(photo));
     target.appendChild(article);
   });
 }
@@ -58,6 +81,14 @@ document.querySelectorAll(".filter").forEach((button) => {
   });
 });
 
-count.textContent = photos.length;
-renderSeries();
-renderGallery();
+closeButton.addEventListener("click", () => lightbox.close());
+lightbox.addEventListener("click", (event) => {
+  if (event.target === lightbox) lightbox.close();
+});
+
+if (photos.length) {
+  heroPhoto.src = photos.find((photo) => photo.title.includes("Mobius Arch"))?.src || photos[0].src;
+  count.textContent = photos.length;
+  renderSeries();
+  renderGallery();
+}
